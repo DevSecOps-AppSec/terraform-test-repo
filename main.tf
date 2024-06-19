@@ -58,4 +58,3 @@ resource "aws_s3_bucket" "another_vulnerable_bucket" {
     }
   }
 }
-

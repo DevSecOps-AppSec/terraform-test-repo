@@ -27,7 +27,28 @@ jobs:
       - name: Run Terraform Validate
         run: terraform validate
 
-      - name: tfsec
+      - name: Run tfsec
+        id: tfsec
         uses: aquasecurity/tfsec-action@v1.0.0
         with:
-          soft_fail: true
+          soft_fail: false  # Ensure the action fails if issues are found
+
+      - name: Save tfsec report
+        if: failure()
+        run: |
+          mkdir -p reports
+          echo "Saving tfsec report"
+          tfsec --format json > reports/tfsec-report.json
+          cat reports/tfsec-report.json
+        continue-on-error: true
+
+      - name: Create summary
+        if: failure()
+        run: |
+          echo "### Terraform Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "The tfsec scan found issues in the Terraform code." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please refer to the attached tfsec report for detailed information." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Report File" >> $GITHUB_STEP_SUMMARY
+          echo "[tfsec-report.json](./reports/tfsec-report.json)" >> $GITHUB_STEP_SUMMARY
